@@ -23,8 +23,13 @@ class Album(models.Model):
 class Song(models.Model):
     song_id = models.BigIntegerField(unique=True)
     title = models.CharField(max_length=255)
-    album = models.ForeignKey(Album, on_delete=models.CASCADE, related_name="songs")
-    artist = models.ForeignKey(Artist, on_delete=models.CASCADE, related_name="songs")
+    album = models.ForeignKey(
+        'Album', 
+        on_delete=models.SET_NULL,  # ✅ Allow NULL if album is deleted
+        related_name="songs", 
+        null=True, blank=True  # ✅ This allows the field to be NULL
+    )
+    artist = models.ForeignKey('Artist', on_delete=models.CASCADE, related_name="songs")
     duration = models.IntegerField()
     preview_url = models.URLField(null=True, blank=True)
 
