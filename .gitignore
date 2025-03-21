@@ -1,0 +1,14 @@
+# Django-related files
+*.log
+*.pot
+*.pyc
+*.pyo
+
+# Environment files
+.env
+*.env
+
+# Virtual environments
+venv/
+env/
+.virtualenv/
