@@ -94,6 +94,7 @@
                 <li><a href="{% url 'home' %}" class="text-gray-300 hover:text-white">Home</a></li>
                 <li><a href="{% url 'library' %}" class="text-gray-300 hover:text-white">Library</a></li>
                 <li><a href="{% url 'profile' %}" class="text-gray-300 hover:text-white">Profile</a></li>
+                <li><a href="{% url 'logout' %}" class="text-gray-300 hover:text-white">Logout</a></li>
             </ul>
         </div>
     </nav>
@@ -103,6 +104,10 @@
         {% block content %}{% endblock %}
     </div>
     {% load static %}
+    <script>
+         var STATIC_URL = "{% static 'music/images/images.png' %}";
+         var DEFAULT_ARTIST_IMAGE = "{% static 'music/default_artist.jpg' %}";
+    </script>
 <script src="{% static 'js/main.js' %}"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/node-vibrant/3.1.6/Vibrant.min.js"></script>
 </body>

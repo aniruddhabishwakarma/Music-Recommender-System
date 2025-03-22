@@ -3,25 +3,31 @@ from music.models.songs_model import Song, Artist, Album
 import random
 from django.http import JsonResponse
 from fuzzywuzzy import process
+from django.contrib.auth.decorators import login_required
 
+@login_required(login_url='/login/')
 def home(request):
-    """View to display 50 random songs initially, but search from the whole database"""
-    query = request.GET.get('q', '')  # Get search query from URL
+    query = request.GET.get('q', '')
+    show_login_toast = request.session.pop("login_success", False)
+    show_logout_toast = request.session.pop("logout_success", False)  # ✅ NEW
+
     if query:
-        # Search the whole database for matching song titles or artist names
         songs = Song.objects.filter(title__icontains=query) | Song.objects.filter(artist__name__icontains=query)
     else:
-        # Show 50 random songs when there is no search
         songs = list(Song.objects.all().order_by('?')[:50])
 
-    # Convert duration to minutes and seconds
     for song in songs:
         song.minutes = song.duration // 60
         song.seconds = song.duration % 60
 
-    return render(request, 'music/home.html', {'songs': songs, 'query': query})
+    return render(request, 'music/home.html', {
+        'songs': songs,
+        'query': query,
+        'show_login_toast': show_login_toast,
+        'show_logout_toast': show_logout_toast,  # ✅ NEW
+    })
 
-
+@login_required(login_url='/login/')
 def search_songs(request):
     """API endpoint for live searching with typo correction."""
     query = request.GET.get('q', '').strip()
@@ -71,6 +77,7 @@ def search_songs(request):
 
     return JsonResponse({"artists": artist_list, "albums": album_list, "songs": song_list, "more_results": more_results}, safe=False)
 
+@login_required(login_url='/login/')
 def search_results_page(request):
     """View to display full search results"""
     query = request.GET.get('q', '')
@@ -82,13 +89,14 @@ def search_results_page(request):
 
     return render(request, 'music/search_results.html', {'songs': songs, 'query': query})
 
-
+@login_required(login_url='/login/')
 def artist_details(request, artist_id):
     """View to display details of a specific artist"""
     artist = get_object_or_404(Artist, id=artist_id)
     albums = artist.albums.all()  # Fetch all albums of the artist
     return render(request, 'music/artist_details.html', {'artist': artist, 'albums': albums})
 
+@login_required(login_url='/login/')
 def album_details(request, album_id):
     """View to display album details with all its songs"""
     album = get_object_or_404(Album, id=album_id)
@@ -101,6 +109,7 @@ def album_details(request, album_id):
 
     return render(request, 'music/album_details.html', {'album': album, 'songs': songs})
 
+@login_required(login_url='/login/')
 def get_song_details(request, song_id):
     """API to fetch full song details for the modal"""
     

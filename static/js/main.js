@@ -43,7 +43,7 @@ $(document).ready(function () {
                             searchResults.append(`
                                 <div class="search-item flex items-center px-4 py-2 text-gray-300 hover:bg-gray-700 cursor-pointer"
                                      onclick="selectSearchItem(${artist.id}, 'artist')">
-                                    <img src="${artist.cover_url || '/static/default_artist.jpg'}" class="w-10 h-10 rounded-full mr-4">
+                                    <img src="${artist.cover_url || '/static/music/images/images.png'}" class="w-10 h-10 rounded-full mr-4">
                                     <span>${artist.name}</span>
                                 </div>`);
                         });
@@ -99,20 +99,22 @@ $(document).ready(function () {
             .then(response => response.json())
             .then(song => {
                 console.log("✅ Song Data:", song); // Debugging
-
+    
                 // ✅ Fill modal details
                 $("#modal-title").text(song.title);
                 $("#modal-artist").text(song.artist.name);
                 $("#modal-album").text(song.album.title);
                 $("#modal-release-date").text(song.album.release_date);
                 $("#modal-duration").text(`${Math.floor(song.duration / 60)}m ${song.duration % 60}s`);
-
-                // ✅ Album Cover
-                $("#modal-album-cover").attr("src", song.album.cover_url || "/static/default_album.jpg");
-
-                // ✅ Artist Photo
-                $("#modal-artist-photo").attr("src", song.artist.picture_url || "/static/default_artist.jpg");
-
+    
+                // ✅ Album Cover (Use STATIC_URL for default)
+                let albumCover = song.album.cover_url || STATIC_URL;
+                $("#modal-album-cover").attr("src", albumCover);
+    
+                // ✅ Artist Photo (Use STATIC_URL for default)
+                let artistPhoto = song.artist.picture_url || DEFAULT_ARTIST_IMAGE;
+                $("#modal-artist-photo").attr("src", artistPhoto);
+    
                 // ✅ Show the modal
                 $("#song-modal").removeClass("hidden");
             })

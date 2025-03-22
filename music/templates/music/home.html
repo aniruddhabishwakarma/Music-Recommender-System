@@ -3,6 +3,7 @@
 {% block title %}Home{% endblock %}
 
 {% block content %}
+{% load static %}
 <h1 class="text-3xl font-bold mb-6">
     {% if query %}🔍 Search Results for "{{ query }}"{% else %}🔥 Trending Songs{% endif %}
 </h1>
@@ -16,9 +17,7 @@
             {% if song.album.cover_url %}
                 <img src="{{ song.album.cover_url }}" alt="{{ song.title }}" class="w-full h-56 object-cover">
             {% else %}
-                <div class="w-full h-56 bg-gray-700 flex items-center justify-center">
-                    <p class="text-gray-500">No Cover Available</p>
-                </div>
+                <img src="{% static 'music/images/images.png' %}" alt="Default Album Cover" class="w-full h-56 object-cover">
             {% endif %}
 
             <!-- Song Details -->
@@ -30,7 +29,36 @@
         </div>
     {% endfor %}
 </div>
+{% if show_login_toast %}
+  <!-- ✅ Login Toast -->
+  <div id="login-toast" class="fixed top-5 right-5 bg-green-600 text-white px-4 py-3 rounded-lg shadow-lg z-50 animate-slide-in">
+    ✅ Welcome back, {{ request.user.username }}!
+  </div>
 
+  <script>
+    setTimeout(() => {
+      const toast = document.getElementById("login-toast");
+      if (toast) toast.remove();
+    }, 4000);
+  </script>
+
+  <style>
+    @keyframes slide-in {
+      from {
+        opacity: 0;
+        transform: translateX(100%);
+      }
+      to {
+        opacity: 1;
+        transform: translateX(0);
+      }
+    }
+
+    .animate-slide-in {
+      animation: slide-in 0.4s ease-out;
+    }
+  </style>
+{% endif %}
 
 
 {% endblock %}

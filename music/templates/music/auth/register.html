@@ -1,0 +1,103 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Register | Music App</title>
+  <link rel="stylesheet" href="{% static 'css/style.css' %}" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="{% static 'js/registration_validation.js' %}"></script>
+
+  <style>
+    .custom-scrollbar::-webkit-scrollbar {
+      width: 8px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-track {
+      background: #1e2538;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background-color: #374151;
+      border-radius: 4px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+      background-color: #4b5563;
+    }
+  </style>
+</head>
+<body class="bg-black flex justify-center items-center min-h-screen">
+
+  <!-- ✅ Registration Card -->
+  <div class="bg-[#121826] rounded-lg shadow-lg w-96 text-white relative max-h-[90vh] flex flex-col">
+    <a href="{% url 'login' %}" class="absolute top-2 right-3 text-gray-400 hover:text-red-500 text-2xl z-10">✖</a>
+
+    <h2 class="text-2xl font-bold text-center mt-4 mb-3 text-blue-400">Create Account</h2>
+
+    <div class="overflow-y-auto px-8 custom-scrollbar" style="max-height: calc(90vh - 120px);">
+      <form id="registration-form" method="POST" action="{% url 'register' %}">
+        {% csrf_token %}
+
+        <!-- Username -->
+        <label class="text-gray-400 block mb-1">Username</label>
+        <input type="text" name="username" id="username" class="w-full p-3 bg-[#1e2538] text-white rounded-lg" placeholder="Choose a username" />
+        <small id="username-msg" class="text-sm block mt-1 mb-4 text-red-400 font-semibold">
+          {% for message in messages %}
+            {% if 'register' in message.tags and 'Username is already taken' in message %}
+              {{ message }}
+            {% endif %}
+          {% endfor %}
+        </small>
+
+        <!-- Email -->
+        <label class="text-gray-400 block mb-1">Email</label>
+        <input type="email" name="email" id="email" class="w-full p-3 bg-[#1e2538] text-white rounded-lg" placeholder="Enter your email" />
+        <small id="email-msg" class="text-sm block mt-1 mb-4 text-red-400 font-semibold">
+          {% for message in messages %}
+            {% if 'register' in message.tags and 'Email is already registered' in message %}
+              {{ message }}
+            {% endif %}
+          {% endfor %}
+        </small>
+
+        <!-- Full Name -->
+        <label class="text-gray-400 block mb-1">Full Name</label>
+        <input type="text" name="full_name" id="full_name" class="w-full p-3 bg-[#1e2538] text-white rounded-lg mb-4" placeholder="Enter your full name" />
+
+        <!-- Contact -->
+        <label class="text-gray-400 block mb-1">Contact Number</label>
+        <input type="text" name="contact_number" id="contact_number" class="w-full p-3 bg-[#1e2538] text-white rounded-lg" placeholder="98XXXXXXXX" />
+        <small id="contact-msg" class="text-sm block mt-1 mb-4 text-red-400 font-semibold">
+          {% for message in messages %}
+            {% if 'register' in message.tags and 'Contact number is already in use' in message %}
+              {{ message }}
+            {% endif %}
+          {% endfor %}
+        </small>
+
+        <!-- Password -->
+        <label class="text-gray-400 block mb-1">Password</label>
+        <input type="password" name="password1" id="password1" class="w-full p-3 bg-[#1e2538] text-white rounded-lg mb-4" placeholder="Create a password" />
+
+        <!-- Confirm Password -->
+        <label class="text-gray-400 block mb-1">Confirm Password</label>
+        <input type="password" name="password2" id="password2" class="w-full p-3 bg-[#1e2538] text-white rounded-lg" placeholder="Confirm password" />
+        <small id="password-msg" class="text-sm block mt-1 mb-4 text-red-400 font-semibold">
+          {% for message in messages %}
+            {% if 'register' in message.tags and 'Passwords do not match' in message %}
+              {{ message }}
+            {% endif %}
+          {% endfor %}
+        </small>
+      </form>
+    </div>
+
+    <!-- Register Button -->
+    <div class="p-4 border-t border-gray-700">
+      <button type="submit" form="registration-form" class="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-3 rounded-lg shadow-md transition duration-300 opacity-50 cursor-not-allowed" disabled>
+        🚀 Register
+      </button>
+    </div>
+  </div>
+
+</body>
+</html>

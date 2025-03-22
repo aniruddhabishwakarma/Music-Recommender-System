@@ -28,7 +28,7 @@ DEBUG = True
 
 ALLOWED_HOSTS = []
 
-
+LOGIN_URL = "/login/"
 # Application definition
 
 INSTALLED_APPS = [
@@ -149,3 +149,5 @@ CORS_ALLOWED_ORIGINS = [
 # Allow frontend to send credentials like cookies (optional)
 CORS_ALLOW_CREDENTIALS = True
 
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')

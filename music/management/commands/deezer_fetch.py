@@ -7,7 +7,7 @@ from music.models import Artist, Album, Song  # Import your models
 DEEZER_API_URL = "https://api.deezer.com"
 
 # List of artists to fetch (Modify as needed)
-ARTISTS_LIST = ["Sonu Nigam", "Kuma Sagar", "Sajjan Raj Vaidya", "Durgesh Thapa", "Sushant Kc"]
+ARTISTS_LIST = ["One Direction", "Passenger", "The Local Train", "Megadeth", "Deftones", "Green Day", "Linkin Park"]
 
 # Rate limit handling: 50 requests per 5 seconds
 REQUEST_DELAY = 0.2 # 200ms between requests

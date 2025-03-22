@@ -1,0 +1,90 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Login | Music App</title>
+  <link rel="stylesheet" href="{% static 'css/style.css' %}" />
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <style>
+    @keyframes slide-in {
+      from {
+        opacity: 0;
+        transform: translateX(100%);
+      }
+      to {
+        opacity: 1;
+        transform: translateX(0);
+      }
+    }
+
+    .animate-slide-in {
+      animation: slide-in 0.4s ease-out;
+    }
+  </style>
+</head>
+
+<body class="bg-black flex justify-center items-center h-screen">
+
+  <!-- ✅ Toasts -->
+  {% if show_register_toast %}
+    <div id="register-toast" class="fixed top-5 right-5 bg-green-600 text-white px-4 py-3 rounded-lg shadow-lg z-50 animate-slide-in">
+      ✅ Account created successfully! You can now login.
+    </div>
+  {% endif %}
+
+  {% if show_logout_toast %}
+    <div id="logout-toast" class="fixed top-5 right-5 bg-red-600 text-white px-4 py-3 rounded-lg shadow-lg z-50 animate-slide-in">
+      👋 You’ve been logged out successfully.
+    </div>
+  {% endif %}
+
+  <!-- ✅ Login Container -->
+  <div class="bg-[#151a26] p-8 rounded-lg shadow-lg w-96 text-white">
+    <h2 class="text-2xl font-bold text-center mb-4">
+      🎵 <span class="text-white-400">Welcome Back</span>
+    </h2>
+
+    <form method="POST" action="{% url 'login' %}">
+      {% csrf_token %}
+      <label class="text-gray-400 block mb-1">Username</label>
+      <input type="text" name="username" class="w-full p-3 bg-[#1e2538] text-white rounded-lg mb-4" placeholder="Enter your username" />
+
+      <label class="text-gray-400 block mb-1">Password</label>
+      <input type="password" name="password" class="w-full p-3 bg-[#1e2538] text-white rounded-lg mb-2" placeholder="Enter your password" />
+
+      {% if messages %}
+        {% for message in messages %}
+          {% if 'login' in message.tags %}
+            <div class="mb-2 text-sm text-red-500 font-semibold">{{ message }}</div>
+          {% endif %}
+        {% endfor %}
+      {% endif %}
+
+      <div class="flex justify-between items-center text-sm mb-4">
+        <a href="#" class="text-blue-400 hover:underline">Forgot Password?</a>
+      </div>
+
+      <button type="submit" class="w-full bg-blue-800 hover:bg-blue-700 text-white font-bold py-3 rounded-lg shadow-md transition duration-300">
+        🔒 Login
+      </button>
+    </form>
+
+    <p class="text-gray-400 text-center mt-4">New here?
+      <a href="{% url 'register' %}" class="text-blue-400 hover:underline">Register</a>
+    </p>
+  </div>
+
+  <!-- ✅ Auto-hide Toasts -->
+  <script>
+    setTimeout(() => {
+      const registerToast = document.getElementById("register-toast");
+      const logoutToast = document.getElementById("logout-toast");
+      if (registerToast) registerToast.remove();
+      if (logoutToast) logoutToast.remove();
+    }, 4000);
+  </script>
+</body>
+</html>
