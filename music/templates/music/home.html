@@ -4,61 +4,86 @@
 
 {% block content %}
 {% load static %}
-<h1 class="text-3xl font-bold mb-6">
-    {% if query %}🔍 Search Results for "{{ query }}"{% else %}🔥 Trending Songs{% endif %}
-</h1>
 
-<div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-8 gap-y-10">
-    {% for song in songs %}
-        <div class="p-2 bg-gray-800 shadow-lg flex flex-col items-center w-64 transition-transform transform hover:scale-105 cursor-pointer"
-             onclick="openModal('{{ song.id }}', '{{ song.title }}', '{{ song.artist.name }}', '{{ song.album.cover_url }}', '{{ song.minutes }}', '{{ song.seconds }}')">
-            
-            <!-- Album Cover -->
-            {% if song.album.cover_url %}
-                <img src="{{ song.album.cover_url }}" alt="{{ song.title }}" class="w-full h-56 object-cover">
-            {% else %}
-                <img src="{% static 'music/images/images.png' %}" alt="Default Album Cover" class="w-full h-56 object-cover">
-            {% endif %}
-
-            <!-- Song Details -->
-            <div class="w-full p-3">
-                <h2 class="text-lg font-semibold text-white">{{ song.title }}</h2>
-                <p class="text-gray-400">🎤 <span class="text-blue-400">{{ song.artist.name }}</span></p>
-                <p class="text-gray-400">⏳ {{ song.minutes }}m {{ song.seconds }}s</p>
-            </div>
-        </div>
-    {% endfor %}
-</div>
+<!-- ✅ Toasts (Login + Security Question) -->
 {% if show_login_toast %}
-  <!-- ✅ Login Toast -->
-  <div id="login-toast" class="fixed top-5 right-5 bg-green-600 text-white px-4 py-3 rounded-lg shadow-lg z-50 animate-slide-in">
+  <div id="toast-login" class="fixed top-5 right-5 bg-green-600 text-white px-4 py-3 rounded-lg shadow-lg z-50 animate-slide-in">
     ✅ Welcome back, {{ request.user.username }}!
   </div>
-
-  <script>
-    setTimeout(() => {
-      const toast = document.getElementById("login-toast");
-      if (toast) toast.remove();
-    }, 4000);
-  </script>
-
-  <style>
-    @keyframes slide-in {
-      from {
-        opacity: 0;
-        transform: translateX(100%);
-      }
-      to {
-        opacity: 1;
-        transform: translateX(0);
-      }
-    }
-
-    .animate-slide-in {
-      animation: slide-in 0.4s ease-out;
-    }
-  </style>
 {% endif %}
 
+{% if show_security_toast %}
+  <div id="toast-security" class="fixed top-20 right-5 bg-blue-600 text-white px-4 py-3 rounded-lg shadow-lg z-50 animate-slide-in">
+    🔐 Security question set successfully!
+  </div>
+{% endif %}
+
+{% if show_security_toast %}
+  <!-- ✅ Toast for success -->
+  <div id="toast-security" class="fixed top-20 right-5 bg-blue-600 text-white px-4 py-3 rounded-lg shadow-lg z-50 animate-slide-in">
+    🔐 Security question set successfully!
+  </div>
+
+  <!-- ✅ Friendly reminder -->
+  <div id="toast-remember" class="fixed top-36 right-5 bg-yellow-400 text-black px-4 py-3 rounded-lg shadow-lg z-50 animate-slide-in">
+    💡 Please remember your answer. It will help you recover your account if you ever forget your password.
+  </div>
+{% endif %}
+
+<script>
+  setTimeout(() => {
+    const toast1 = document.getElementById("toast-login");
+    const toast2 = document.getElementById("toast-security");
+    const toast3 = document.getElementById("toast-remember");
+    if (toast1) toast1.remove();
+    if (toast2) toast2.remove();
+    if (toast3) toast3.remove();
+  }, 5000);
+</script>
+
+<style>
+  @keyframes slide-in {
+    from {
+      opacity: 0;
+      transform: translateX(100%);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+
+  .animate-slide-in {
+    animation: slide-in 0.4s ease-out;
+  }
+</style>
+
+<!-- ✅ Section Title -->
+<h1 class="text-3xl font-bold mb-6">
+  {% if query %}🔍 Search Results for "{{ query }}"{% else %}🔥 Trending Songs{% endif %}
+</h1>
+
+<!-- ✅ Song Cards -->
+<div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-8 gap-y-10">
+  {% for song in songs %}
+  <div class="p-2 bg-gray-800 shadow-lg flex flex-col items-center w-64 transition-transform transform hover:scale-105 cursor-pointer"
+  onclick="openModal('{{ song.id }}')">
+
+      <!-- Album Cover -->
+      {% if song.album.cover_url %}
+        <img src="{{ song.album.cover_url }}" alt="{{ song.title }}" class="w-full h-56 object-cover">
+      {% else %}
+        <img src="{% static 'music/images/images.png' %}" alt="Default Album Cover" class="w-full h-56 object-cover">
+      {% endif %}
+
+      <!-- Song Details -->
+      <div class="w-full p-3">
+        <h2 class="text-lg font-semibold text-white">{{ song.title }}</h2>
+        <p class="text-gray-400">🎤 <span class="text-blue-400">{{ song.artist.name }}</span></p>
+        <p class="text-gray-400">⏳ {{ song.minutes }}m {{ song.seconds }}s</p>
+      </div>
+    </div>
+  {% endfor %}
+</div>
 
 {% endblock %}

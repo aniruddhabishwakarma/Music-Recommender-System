@@ -1,8 +1,7 @@
-
 <!-- ✅ Fixed Song Details Modal -->
 <div id="song-modal" class="fixed inset-0 pt-20 flex items-center justify-center bg-opacity-50 z-50 hidden">
     <div class="text-white p-6 translate-x-18 translate-y-3 bg-[#111827] rounded-lg shadow-lg w-3/5 h-4/5 overflow-y-auto custom-scroll">
-        
+
         <!-- ✅ Close Button -->
         <button class="absolute top-4 right-4 text-gray-400 hover:text-red-500 text-3xl font-bold transition-transform transform hover:scale-125"
                 onclick="closeModal()">
@@ -13,29 +12,30 @@
         <div class="flex flex-col md:flex-row items-center">
             <!-- ✅ Album Cover & Album Details -->
             {% load static %}
-<div class="flex flex-col items-center w-full md:w-1/3">
-    <img id="modal-album-cover" src="{% static 'images/images.png' %}"
-         alt="Album Cover" class="w-64 h-64 object-cover rounded-lg shadow-lg">
-    <p class="text-gray-400 text-lg mt-2">
-        📀 <span class="font-semibold">Album:</span> <span id="modal-album">N/A</span>
-    </p>
-    <p class="text-gray-300 text-md">
-        📅 <span class="font-semibold">Released:</span> <span id="modal-release-date">Unknown</span>
-    </p>
-</div>
+            <div class="flex flex-col items-center w-full md:w-1/3">
+                <img id="modal-album-cover" src="{% static 'images/images.png' %}"
+                     onerror="this.onerror=null;this.src='/static/images/images.png';"
+                     alt="Album Cover" class="w-64 h-64 object-cover rounded-lg shadow-lg">
+                <p class="text-gray-400 text-lg mt-2">
+                    💰 <span class="font-semibold">Album:</span> <span id="modal-album">N/A</span>
+                </p>
+                <p class="text-gray-300 text-md">
+                    📅 <span class="font-semibold">Released:</span> <span id="modal-release-date">Unknown</span>
+                </p>
+            </div>
 
             <!-- ✅ Song Information -->
             <div class="flex flex-col justify-center w-full md:w-2/3 px-6">
-                
                 <!-- ✅ Title & Artist -->
                 <h2 id="modal-title" class="text-3xl font-bold text-center md:text-left">Song Title</h2>
-                
+
                 <!-- ✅ Artist Info -->
                 <div class="flex items-center mt-2">
-                    <img id="modal-artist-photo" src="/static/default_artist.jpg"
+                    <img id="modal-artist-photo" src="{% static 'images/default_artist.jpg' %}"
+                         onerror="this.onerror=null;this.src='/static/images/default_artist.jpg';"
                          alt="Artist Photo" class="w-14 h-14 rounded-full shadow-md">
                     <div class="ml-3">
-                        <a id="modal-artist-link" href="#" target="_blank" class="text-blue-400 text-lg hover:underline">
+                        <a id="modal-artist-link" href="#" class="text-blue-400 text-lg hover:underline">
                             <span id="modal-artist">Unknown Artist</span>
                         </a>
                         <p class="text-gray-400 text-sm">👥 Fans: <span id="modal-artist-fans">0</span></p>
@@ -65,13 +65,9 @@
         <!-- ✅ Reviews Section (Scrollable) -->
         <div class="mt-8">
             <h3 class="text-xl font-bold mb-4">📢 User Reviews</h3>
-            
-            <!-- ✅ Review List -->
             <div id="review-list" class="overflow-y-auto max-h-40 custom-scroll">
                 <p class="text-gray-500 text-sm italic">No reviews yet. Be the first to review! 🎶</p>
             </div>
-
-            <!-- ✅ Write a Review -->
             <div class="mt-6">
                 <textarea id="review-input" class="w-full p-3 bg-gray-800 text-gray-300 rounded-lg" placeholder="Write your review..."></textarea>
                 <button onclick="submitReview()" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-6 rounded-lg shadow-lg mt-2">
@@ -82,45 +78,74 @@
     </div>
 </div>
 
-<!-- ✅ JavaScript for Reviews -->
 <script>
-    function submitReview() {
-        let reviewText = document.getElementById("review-input").value.trim();
-        let reviewList = document.getElementById("review-list");
+function openModal(songId) {
+    fetch(`/api/song/${songId}/`)
+        .then(response => response.json())
+        .then(song => {
+            const minutes = Math.floor(song.duration / 60);
+            const seconds = song.duration % 60;
 
-        if (reviewText) {
-            let reviewItem = document.createElement("div");
-            reviewItem.className = "bg-gray-800 p-4 rounded-lg shadow-md mt-3";
-            reviewItem.innerHTML = `<p class="text-gray-300">🔥 "${reviewText}" - Anonymous</p>`;
-            
-            // ✅ Append new review
-            reviewList.appendChild(reviewItem);
+            document.getElementById("modal-title").innerText = song.title;
+            document.getElementById("modal-artist").innerText = song.artist.name;
+            document.getElementById("modal-artist-link").href = `/artist/${song.artist.id}/`;
+            document.getElementById("modal-artist-photo").src = song.artist.picture_url || "/static/images/default_artist.jpg";
+            document.getElementById("modal-artist-fans").innerText = song.artist.fans_count;
+            document.getElementById("modal-album-cover").src = song.album.cover_url || "/static/images/images.png";
+            document.getElementById("modal-album").innerText = song.album.title;
+            document.getElementById("modal-release-date").innerText = song.album.release_date;
+            document.getElementById("modal-duration").innerText = `${minutes}m ${seconds}s`;
+            document.getElementById("modal-playback-btn").href = song.preview_url || "#";
+            document.getElementById("song-modal").classList.remove("hidden");
+        })
+        .catch(error => console.error("❌ Error fetching song details:", error));
+}
 
-            // ✅ Clear input field
-            document.getElementById("review-input").value = "";
-        }
+function submitReview() {
+    let reviewText = document.getElementById("review-input").value.trim();
+    let reviewList = document.getElementById("review-list");
+
+    if (reviewText) {
+        let reviewItem = document.createElement("div");
+        reviewItem.className = "bg-gray-800 p-4 rounded-lg shadow-md mt-3";
+        reviewItem.innerHTML = `<p class="text-gray-300">🔥 "${reviewText}" - Anonymous</p>`;
+        reviewList.appendChild(reviewItem);
+        document.getElementById("review-input").value = "";
     }
+}
+
+function closeModal() {
+    document.getElementById("song-modal").classList.add("hidden");
+}
 </script>
 
-<!-- ✅ CSS for Beautiful Scrollbar -->
 <style>
-/* 🎨 Custom Scrollbar Styling */
 .custom-scroll::-webkit-scrollbar {
     width: 10px;
 }
-
 .custom-scroll::-webkit-scrollbar-track {
     background: #1F2937;
     border-radius: 10px;
 }
-
 .custom-scroll::-webkit-scrollbar-thumb {
     background: #4B5563;
     border-radius: 10px;
     border: 3px solid #1F2937;
 }
-
 .custom-scroll::-webkit-scrollbar-thumb:hover {
     background: #6B7280;
+}
+@keyframes slide-in {
+  from {
+    opacity: 0;
+    transform: translateX(100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+.animate-slide-in {
+  animation: slide-in 0.4s ease-out;
 }
 </style>

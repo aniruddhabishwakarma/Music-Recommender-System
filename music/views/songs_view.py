@@ -8,14 +8,18 @@ from django.contrib.auth.decorators import login_required
 @login_required(login_url='/login/')
 def home(request):
     query = request.GET.get('q', '')
+
+    # ✅ Pop all toast flags from session
     show_login_toast = request.session.pop("login_success", False)
-    show_logout_toast = request.session.pop("logout_success", False)  # ✅ NEW
+    show_logout_toast = request.session.pop("logout_success", False)
+    show_security_toast = request.session.pop("security_question_set", False)
 
     if query:
         songs = Song.objects.filter(title__icontains=query) | Song.objects.filter(artist__name__icontains=query)
     else:
         songs = list(Song.objects.all().order_by('?')[:50])
 
+    # ✅ Convert duration
     for song in songs:
         song.minutes = song.duration // 60
         song.seconds = song.duration % 60
@@ -24,7 +28,8 @@ def home(request):
         'songs': songs,
         'query': query,
         'show_login_toast': show_login_toast,
-        'show_logout_toast': show_logout_toast,  # ✅ NEW
+        'show_logout_toast': show_logout_toast,
+        'show_security_toast': show_security_toast,
     })
 
 @login_required(login_url='/login/')
@@ -41,6 +46,7 @@ def search_songs(request):
 
     # Function to find the best match for a query using fuzzy matching
     def get_best_match(query, objects, field):
+        from fuzzywuzzy import process
         choices = [getattr(obj, field) for obj in objects]
         best_match = process.extractOne(query, choices, score_cutoff=70)  # 70% similarity threshold
         if best_match:
@@ -58,24 +64,42 @@ def search_songs(request):
     fuzzy_songs = get_best_match(query, all_songs, "title") if not exact_songs else []
 
     # Combine results with correct priority:
-    # 1. Exact artist match
-    # 2. Exact album match
-    # 3. Exact song match
-    # 4. Fuzzy (typo-corrected) artist
-    # 5. Fuzzy (typo-corrected) album
-    # 6. Fuzzy (typo-corrected) songs
     artists = exact_artist + fuzzy_artist
     albums = exact_album + fuzzy_album
     songs = exact_songs + fuzzy_songs
 
-    # Convert to JSON response format
-    artist_list = [{"id": artist.id, "name": artist.name, "cover_url": artist.picture_url, "type": "artist"} for artist in artists[:2]]
-    album_list = [{"id": album.id, "title": album.title, "artist": album.artist.name, "cover_url": album.cover_url, "type": "album"} for album in albums[:2]]
-    song_list = [{"id": song.id, "title": song.title, "artist": song.artist.name, "cover_url": song.album.cover_url if song.album else None, "type": "song"} for song in songs[:3]]
+    # ✅ Fix: Use artist.artist_id instead of artist.id
+    artist_list = [{
+        "id": artist.artist_id,
+        "name": artist.name,
+        "cover_url": artist.picture_url,
+        "type": "artist"
+    } for artist in artists[:2]]
+
+    album_list = [{
+        "id": album.id,
+        "title": album.title,
+        "artist": album.artist.name,
+        "cover_url": album.cover_url,
+        "type": "album"
+    } for album in albums[:2]]
+
+    song_list = [{
+        "id": song.id,
+        "title": song.title,
+        "artist": song.artist.name,
+        "cover_url": song.album.cover_url if song.album else None,
+        "type": "song"
+    } for song in songs[:3]]
 
     more_results = len(artists) + len(albums) + len(songs) > 5
 
-    return JsonResponse({"artists": artist_list, "albums": album_list, "songs": song_list, "more_results": more_results}, safe=False)
+    return JsonResponse({
+        "artists": artist_list,
+        "albums": album_list,
+        "songs": song_list,
+        "more_results": more_results
+    }, safe=False)
 
 @login_required(login_url='/login/')
 def search_results_page(request):
@@ -89,12 +113,6 @@ def search_results_page(request):
 
     return render(request, 'music/search_results.html', {'songs': songs, 'query': query})
 
-@login_required(login_url='/login/')
-def artist_details(request, artist_id):
-    """View to display details of a specific artist"""
-    artist = get_object_or_404(Artist, id=artist_id)
-    albums = artist.albums.all()  # Fetch all albums of the artist
-    return render(request, 'music/artist_details.html', {'artist': artist, 'albums': albums})
 
 @login_required(login_url='/login/')
 def album_details(request, album_id):
@@ -142,3 +160,24 @@ def get_song_details(request, song_id):
     }
 
     return JsonResponse(response_data)
+
+@login_required
+def library(request):
+    return render(request, "music/library.html")
+
+@login_required
+def artist_details(request, artist_id):
+    # ✅ Use artist_id field, not the default id
+    artist = get_object_or_404(Artist, artist_id=artist_id)
+
+    # Fetch a few random songs
+    songs = Song.objects.filter(artist=artist).order_by("?")[:3]
+
+    # Fetch albums
+    albums = Album.objects.filter(artist=artist)
+
+    return render(request, "music/artist_details.html", {
+        "artist": artist,
+        "songs": songs,
+        "albums": albums
+    })

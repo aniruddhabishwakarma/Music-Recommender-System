@@ -1,8 +1,100 @@
 {% extends "music/base.html" %}
-
+{% load static %}
 {% block title %}Profile{% endblock %}
 
 {% block content %}
-<h1 class="text-3xl font-bold">👤 Your Profile</h1>
-<p class="text-gray-400 mt-2">User details and settings will be displayed here.</p>
+<div class="max-w-6xl mx-auto py-10 px-4">
+
+  <!-- ✅ Toasts -->
+  {% if show_info_toast %}
+    <div id="info-toast" class="fixed top-5 right-5 bg-green-600 text-white px-4 py-3 rounded-lg shadow-lg z-50 animate-slide-in">
+      ✅ Profile info updated successfully!
+    </div>
+  {% endif %}
+  {% if show_password_toast %}
+    <div id="pwd-toast" class="fixed top-5 right-5 bg-blue-600 text-white px-4 py-3 rounded-lg shadow-lg z-50 animate-slide-in">
+      🔐 Password updated successfully!
+    </div>
+  {% endif %}
+
+  <!-- ✅ Profile Header -->
+  <div class="flex flex-col sm:flex-row items-center sm:items-start gap-6 mb-10">
+    <!-- Profile Picture -->
+    <div class="relative group w-32 h-32">
+      <img src="{{ user.profile.profile_picture.url }}"
+           onerror="this.onerror=null;this.src='/media/profile_pics/default.jpg';"
+           alt="Profile Picture"
+           class="w-full h-full rounded-full border-4 border-blue-500 object-cover shadow-md transition" />
+
+      <!-- Upload Form on Hover -->
+      <form method="POST" enctype="multipart/form-data" action="{% url 'update_profile_picture' %}"
+            class="absolute inset-0 rounded-full bg-black bg-opacity-60 opacity-0 group-hover:opacity-100 flex items-center justify-center transition">
+        {% csrf_token %}
+        <label for="profilePicInput" class="cursor-pointer text-white text-sm">Update Photo</label>
+        <input type="file" id="profilePicInput" name="profile_picture" class="hidden" onchange="this.form.submit()">
+      </form>
+    </div>
+
+    <!-- User Name & Username -->
+    <div class="text-white">
+      <h2 class="text-3xl font-bold">{{ user.profile.full_name }}</h2>
+      <p class="text-gray-400">@{{ user.username }}</p>
+    </div>
+  </div>
+
+  <!-- ✅ Info Cards -->
+  <div class="grid md:grid-cols-2 gap-6">
+    <!-- Basic Info -->
+    <div class="bg-[#1e2538] p-6 rounded-xl shadow-md">
+      <div class="flex justify-between items-center mb-4">
+        <h3 class="text-lg font-semibold text-blue-400 flex items-center gap-2">📄 Basic Info</h3>
+        <button onclick="openEditModal()" class="text-blue-400 hover:underline text-sm">Edit</button>
+      </div>
+      <p class="text-gray-400 mb-1"><strong class="text-white">Full Name:</strong> {{ user.profile.full_name }}</p>
+      <p class="text-gray-400 mb-1"><strong class="text-white">Email:</strong> {{ user.email }}</p>
+      <p class="text-gray-400"><strong class="text-white">Contact:</strong> {{ user.profile.contact_number }}</p>
+    </div>
+
+    <!-- Password Info -->
+    <div class="bg-[#1e2538] p-6 rounded-xl shadow-md">
+      <div class="flex justify-between items-center mb-4">
+        <h3 class="text-lg font-semibold text-yellow-400 flex items-center gap-2">🔐 Password</h3>
+        <button onclick="openPasswordModal()" class="text-blue-400 hover:underline text-sm">Edit</button>
+      </div>
+      <p class="text-gray-400">Your password is securely encrypted.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ✅ Include Modals -->
+{% include "music/profile_modals.html" %}
+
+<!-- ✅ Scripts -->
+<script>
+  function openEditModal() {
+    document.getElementById("edit-info-modal").classList.remove("hidden");
+  }
+  function openPasswordModal() {
+    document.getElementById("change-password-modal").classList.remove("hidden");
+  }
+
+  // ✅ Auto-hide Toasts
+  setTimeout(() => {
+    const info = document.getElementById("info-toast");
+    const pwd = document.getElementById("pwd-toast");
+    if (info) info.remove();
+    if (pwd) pwd.remove();
+  }, 4000);
+</script>
+
+<!-- ✅ Toast Animation -->
+<style>
+@keyframes slide-in {
+  from { opacity: 0; transform: translateX(100%); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+.animate-slide-in {
+  animation: slide-in 0.4s ease-out;
+}
+</style>
 {% endblock %}

@@ -9,37 +9,30 @@ contact_number_validator = RegexValidator(
     message="Enter a valid 10-digit Nepali phone number starting with 98 or 97."
 )
 
+
+class SecurityQuestion(models.Model):
+    question_text = models.CharField(max_length=255, unique=True)
+
+    def __str__(self):
+        return self.question_text
+    
+
 class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="profile")
     full_name = models.CharField(max_length=150)
     contact_number = models.CharField(
         max_length=10, 
         validators=[contact_number_validator],
-        unique=True  # Ensures contact numbers are not duplicated
+        unique=True
     )
     profile_picture = models.ImageField(
-    upload_to="profile_pics/", 
-    blank=True, 
+    upload_to="profile_pics/",
+    blank=True,
     null=True,
-    default='music/images/default_profile.jpg'  # or use your function if serving from static
-)
+    default="profile_pics/default.jpg"  # ✅ Corrected path
+    )
+    security_question = models.ForeignKey(SecurityQuestion, on_delete=models.SET_NULL, null=True, blank=True)
+    security_answer = models.CharField(max_length=255, blank=True)  # ✅ Optional at first
 
     def __str__(self):
         return self.user.username
-
-
-# ✅ Security Question Model
-class SecurityQuestion(models.Model):
-    QUESTION_CHOICES = [
-        ("pet_name", "What is the name of your first pet?"),
-        ("school", "What was your first school?"),
-        ("first_movie", "Whaich was you first movie in theater?"),
-        ("childhood_friend", "Who was your childhood best friend?"),
-    ]
-
-    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="security_question")
-    question = models.CharField(max_length=50, choices=QUESTION_CHOICES)
-    answer = models.CharField(max_length=255)  # Stores hashed or plain text answer
-
-    def __str__(self):
-        return f"{self.user.username} - {self.get_question_display()}"

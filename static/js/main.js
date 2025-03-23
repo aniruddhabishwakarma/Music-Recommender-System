@@ -3,7 +3,7 @@ $(document).ready(function () {
     let searchResults = $("#search-results");
     let clearSearchBtn = $("#clearSearch");
 
-    // ✅ Live Search Functionality
+    // ✅ Live Search
     searchInput.on("input", function () {
         let query = $(this).val().trim();
 
@@ -11,8 +11,9 @@ $(document).ready(function () {
             fetch(`/api/search?q=${query}`)
                 .then(response => response.json())
                 .then(data => {
-                    searchResults.empty().show(); // Clear previous results & show dropdown
+                    searchResults.empty().show();
 
+                    // 🎵 Songs
                     if (data.songs.length > 0) {
                         searchResults.append(`<p class="px-4 py-2 text-gray-400 text-sm">🎵 Songs</p>`);
                         data.songs.slice(0, 5).forEach(song => {
@@ -25,6 +26,7 @@ $(document).ready(function () {
                         });
                     }
 
+                    // 📀 Albums
                     if (data.albums.length > 0) {
                         searchResults.append(`<p class="px-4 py-2 text-gray-400 text-sm">📀 Albums</p>`);
                         data.albums.slice(0, 5).forEach(album => {
@@ -37,6 +39,7 @@ $(document).ready(function () {
                         });
                     }
 
+                    // 👤 Artists
                     if (data.artists.length > 0) {
                         searchResults.append(`<p class="px-4 py-2 text-gray-400 text-sm">👤 Artists</p>`);
                         data.artists.slice(0, 5).forEach(artist => {
@@ -49,41 +52,61 @@ $(document).ready(function () {
                         });
                     }
 
+                    // View More
                     searchResults.append(`<div class="view-more px-4 py-3 text-center text-blue-400 hover:text-blue-300 bg-gray-900 cursor-pointer"
-                                          onclick="window.location.href='/search-results?q=${query}'">
-                                          View More Results →
-                                      </div>`);
+                        onclick="window.location.href='/search-results?q=${query}'">
+                        View More Results →
+                    </div>`);
                 })
                 .catch(error => console.error("❌ Error fetching search results:", error));
 
-            clearSearchBtn.show(); // Show ❌ button when input is not empty
+            clearSearchBtn.show();
         } else {
             searchResults.hide();
             clearSearchBtn.hide();
         }
     });
 
-    // ✅ Function to handle selection of a search item (Song, Album, Artist)
+    // ✅ Handle selection
     function selectSearchItem(id, type) {
-        searchResults.hide(); // Hide the dropdown after selection
+        searchResults.hide();
 
         if (type === "song") {
-            openModal(id); // Open song modal
+            fetch(`/api/song/${id}/`)
+                .then(response => response.json())
+                .then(song => {
+                    console.log("🎵 Song from API:", song);
+                    openModal(
+                        song.song_id,
+                        song.title,
+                        song.artist.name,
+                        song.album.cover_url || "/static/default_album.jpg",
+                        song.minutes,
+                        song.seconds,
+                        song.artist.id,
+                        song.artist.fans_count,
+                        song.artist.picture_url || "/static/default_artist.jpg",
+                        song.album.title,
+                        song.album.release_date,
+                        song.preview_url
+                    );
+                })
+                .catch(error => console.error("❌ Error fetching song details:", error));
         } else if (type === "album") {
-            window.location.href = `/album/${id}`; // Redirect to album page
+            window.location.href = `/album/${id}`;
         } else if (type === "artist") {
-            window.location.href = `/artist/${id}`; // Redirect to artist page
+            window.location.href = `/artist/${id}`;
         }
     }
 
-    // ✅ Hide Dropdown When Clicking Outside
+    // ✅ Click outside to close dropdown
     $(document).on("click", function (event) {
         if (!$(event.target).closest("#searchQuery, #search-results").length) {
             searchResults.hide();
         }
     });
 
-    // ✅ Clear Search Button Click
+    // ✅ Clear button
     clearSearchBtn.on("click", function () {
         searchInput.val("").focus();
         searchResults.hide();
@@ -92,48 +115,7 @@ $(document).ready(function () {
 
     // ✅ Expose function globally
     window.selectSearchItem = selectSearchItem;
-
-    // ✅ Open Modal Function
-    function openModal(songId) {
-        fetch(`/api/song/${songId}/`)
-            .then(response => response.json())
-            .then(song => {
-                console.log("✅ Song Data:", song); // Debugging
-    
-                // ✅ Fill modal details
-                $("#modal-title").text(song.title);
-                $("#modal-artist").text(song.artist.name);
-                $("#modal-album").text(song.album.title);
-                $("#modal-release-date").text(song.album.release_date);
-                $("#modal-duration").text(`${Math.floor(song.duration / 60)}m ${song.duration % 60}s`);
-    
-                // ✅ Album Cover (Use STATIC_URL for default)
-                let albumCover = song.album.cover_url || STATIC_URL;
-                $("#modal-album-cover").attr("src", albumCover);
-    
-                // ✅ Artist Photo (Use STATIC_URL for default)
-                let artistPhoto = song.artist.picture_url || DEFAULT_ARTIST_IMAGE;
-                $("#modal-artist-photo").attr("src", artistPhoto);
-    
-                // ✅ Show the modal
-                $("#song-modal").removeClass("hidden");
-            })
-            .catch(error => console.error("❌ Error fetching song details:", error));
-    }
-
-    // ✅ Close Modal Function
-    function closeModal() {
+    window.closeModal = function () {
         $("#song-modal").addClass("hidden");
-    }
-
-    // ✅ Close modal when clicking outside
-    $(document).on("click", function (event) {
-        if ($(event.target).is("#song-modal")) {
-            closeModal();
-        }
-    });
-
-    // ✅ Expose functions globally for event listeners
-    window.openModal = openModal;
-    window.closeModal = closeModal;
+    };
 });

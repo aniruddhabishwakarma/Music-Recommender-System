@@ -1,0 +1,37 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Set Security Question</title>
+  <link rel="stylesheet" href="{% static 'css/style.css' %}" />
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-black flex justify-center items-center h-screen">
+
+  <div class="bg-[#121826] p-8 rounded-lg shadow-lg w-96 text-white relative">
+    <h2 class="text-2xl font-bold text-center text-blue-400 mb-6">🔐 Set Your Security Question</h2>
+
+    <form method="POST" action="{% url 'set_security_question' %}">
+      {% csrf_token %}
+
+      <label class="text-gray-400 block mb-1">Choose a Question</label>
+      <select name="question" class="w-full p-3 bg-[#1e2538] text-white rounded-lg mb-4" required>
+        <option value="" disabled selected>Select a question</option>
+        {% for q in questions %}
+          <option value="{{ q.id }}">{{ q.question_text }}</option>
+        {% endfor %}
+      </select>
+
+      <label class="text-gray-400 block mb-1">Your Answer</label>
+      <input type="text" name="answer" class="w-full p-3 bg-[#1e2538] text-white rounded-lg mb-6" placeholder="Your answer..." required>
+
+      <button type="submit" class="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-3 rounded-lg shadow-md transition duration-300">
+        ✅ Save and Continue
+      </button>
+    </form>
+  </div>
+
+</body>
+</html>
