@@ -4,6 +4,7 @@ import random
 from django.http import JsonResponse
 from fuzzywuzzy import process
 from django.contrib.auth.decorators import login_required
+import json
 
 @login_required(login_url='/login/')
 def home(request):
@@ -116,16 +117,24 @@ def search_results_page(request):
 
 @login_required(login_url='/login/')
 def album_details(request, album_id):
-    """View to display album details with all its songs"""
     album = get_object_or_404(Album, id=album_id)
     songs = Song.objects.filter(album=album)
 
-    # Convert song duration to minutes and seconds
-    for song in songs:
-        song.minutes = song.duration // 60
-        song.seconds = song.duration % 60
+    songs_data = [
+        {
+            "title": song.title,
+            "duration": song.duration or 0
+        }
+        for song in songs
+    ]
 
-    return render(request, 'music/album_details.html', {'album': album, 'songs': songs})
+    response = {
+        "title": album.title,
+        "cover": album.cover_url,
+        "songs": songs_data
+    }
+
+    return JsonResponse(response)
 
 @login_required(login_url='/login/')
 def get_song_details(request, song_id):
@@ -137,18 +146,20 @@ def get_song_details(request, song_id):
         "song_id": song.id,
         "title": song.title,
         "duration": song.duration,
-        "minutes": song.duration // 60,  # Convert duration to minutes
-        "seconds": song.duration % 60,   # Convert duration to seconds
-        "preview_url": song.preview_url if song.preview_url else None,  # Playback URL
+        "minutes": song.duration // 60,
+        "seconds": song.duration % 60,
+        "preview_url": song.preview_url if song.preview_url else None,
 
         # ✅ Artist Details
         "artist": {
             "id": song.artist.id,
+            "artist_id": song.artist.artist_id,  # ✅ ADD THIS LINE
             "name": song.artist.name,
             "picture_url": song.artist.picture_url,
             "link": song.artist.link,
             "fans_count": song.artist.fans_count
         },
+
 
         # ✅ Album Details
         "album": {
@@ -165,17 +176,32 @@ def get_song_details(request, song_id):
 def library(request):
     return render(request, "music/library.html")
 
-@login_required
+@login_required(login_url='/login/')
 def artist_details(request, artist_id):
-    # ✅ Use artist_id field, not the default id
+    # ✅ Get the artist object
     artist = get_object_or_404(Artist, artist_id=artist_id)
 
-    # Fetch a few random songs
-    songs = Song.objects.filter(artist=artist).order_by("?")[:3]
+    # ✅ Get 10 random songs for the artist
+    songs = list(Song.objects.filter(artist=artist).order_by('?')[:10])
+    for song in songs:
+        song.minutes = song.duration // 60
+        song.seconds = song.duration % 60
 
-    # Fetch albums
+    # ✅ Get all albums of the artist
     albums = Album.objects.filter(artist=artist)
 
+    # ✅ Add a JSON string of songs for each album
+    for album in albums:
+        album_songs = Song.objects.filter(album=album)
+        album.songs_data = json.dumps([
+            {
+                "title": s.title,
+                "duration": s.duration or 0
+            }
+            for s in album_songs
+        ])
+
+    # ✅ Render the artist details page
     return render(request, "music/artist_details.html", {
         "artist": artist,
         "songs": songs,

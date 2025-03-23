@@ -88,7 +88,7 @@ function openModal(songId) {
 
             document.getElementById("modal-title").innerText = song.title;
             document.getElementById("modal-artist").innerText = song.artist.name;
-            document.getElementById("modal-artist-link").href = `/artist/${song.artist.id}/`;
+            document.getElementById("modal-artist-link").href = `/artist/${song.artist.artist_id}/`;
             document.getElementById("modal-artist-photo").src = song.artist.picture_url || "/static/images/default_artist.jpg";
             document.getElementById("modal-artist-fans").innerText = song.artist.fans_count;
             document.getElementById("modal-album-cover").src = song.album.cover_url || "/static/images/images.png";

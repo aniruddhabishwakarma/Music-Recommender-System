@@ -21,7 +21,7 @@ urlpatterns = [
     path('api/search/', search_songs, name='search-songs'),
     path('search-results/', search_results_page, name='search-results'),
     path('api/song/<int:song_id>/', get_song_details, name='get-song-details'),
-    path("artist/<int:artist_id>/", artist_details, name="artist-details"),
+    path("artist/<int:artist_id>/", artist_details, name="artist_details"),
 
     # ✅ Auth Views
     path("login/", login_view, name="login"),
