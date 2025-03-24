@@ -5,6 +5,7 @@ from django.http import JsonResponse
 from fuzzywuzzy import process
 from django.contrib.auth.decorators import login_required
 import json
+from music.models.library_model import *
 
 @login_required(login_url='/login/')
 def home(request):
@@ -117,7 +118,7 @@ def search_results_page(request):
 
 @login_required(login_url='/login/')
 def album_details(request, album_id):
-    album = get_object_or_404(Album, id=album_id)
+    album = get_object_or_404(Album, album_id=album_id)
     songs = Song.objects.filter(album=album)
 
     songs_data = [
@@ -178,32 +179,32 @@ def library(request):
 
 @login_required(login_url='/login/')
 def artist_details(request, artist_id):
-    # ✅ Get the artist object
     artist = get_object_or_404(Artist, artist_id=artist_id)
 
-    # ✅ Get 10 random songs for the artist
+    # Get 10 random songs and check if user liked them
     songs = list(Song.objects.filter(artist=artist).order_by('?')[:10])
+    liked_song_ids = set(Like.objects.filter(user=request.user, song__in=songs).values_list('song_id', flat=True))
+
     for song in songs:
         song.minutes = song.duration // 60
         song.seconds = song.duration % 60
+        song.is_liked = song.id in liked_song_ids
 
-    # ✅ Get all albums of the artist
+    # Get albums
     albums = Album.objects.filter(artist=artist)
-
-    # ✅ Add a JSON string of songs for each album
     for album in albums:
         album_songs = Song.objects.filter(album=album)
-        album.songs_data = json.dumps([
-            {
-                "title": s.title,
-                "duration": s.duration or 0
-            }
+        album.songs_data = [
+            {"title": s.title, "duration": s.duration or 0}
             for s in album_songs
-        ])
+        ]
 
-    # ✅ Render the artist details page
+    # Check if current user follows the artist
+    is_following = Follow.objects.filter(user=request.user, artist=artist).exists()
+
     return render(request, "music/artist_details.html", {
         "artist": artist,
         "songs": songs,
-        "albums": albums
+        "albums": albums,
+        "is_following": is_following
     })

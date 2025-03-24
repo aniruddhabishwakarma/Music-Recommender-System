@@ -5,10 +5,10 @@ from music.views.user_view import *
 from music.views.auth_view import *  # ✅ Import properly
 from django.conf import settings
 from django.conf.urls.static import static
+from music.views.library_view import like_toggle, follow_toggle
 
 urlpatterns = [
     path('', home, name='home'),
-    path('album/<int:album_id>/', album_details, name='album-details'),
     path('profile/', profile, name='profile'),
     path('library/', library, name='library'),
 
@@ -22,6 +22,7 @@ urlpatterns = [
     path('search-results/', search_results_page, name='search-results'),
     path('api/song/<int:song_id>/', get_song_details, name='get-song-details'),
     path("artist/<int:artist_id>/", artist_details, name="artist_details"),
+    path('album/<int:album_id>/', album_details, name='album-details'),
 
     # ✅ Auth Views
     path("login/", login_view, name="login"),
@@ -37,6 +38,9 @@ urlpatterns = [
     path("forgot-password/", forgot_password_view, name="forgot_password"),
     path("forgot-password/verify/<str:username>/", verify_security_question_view, name="verify_security_question"),
     path("reset-password/", reset_password_confirm_view, name="reset_password"),
+
+    path('like-toggle/<int:song_id>/', like_toggle, name='like-toggle'),
+    path('follow-toggle/<int:artist_id>/', follow_toggle, name='follow-toggle'),
 ]
 
 if settings.DEBUG:

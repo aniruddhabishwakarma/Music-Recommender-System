@@ -9,11 +9,17 @@
   <div class="flex items-center gap-6 mb-10">
     <img src="{{ artist.picture_url }}" alt="{{ artist.name }}" class="w-32 h-32 rounded-full object-cover border-4 border-blue-500 shadow-lg">
     <div>
-      <h2 class="text-3xl font-bold text-white">{{ artist.name }}</h2>
+      <h2 class="text-3xl font-bold">{{ artist.name }}</h2>
       <p class="text-gray-400">👥 Fans: {{ artist.fans_count }}</p>
       <a href="{{ artist.link }}" target="_blank" class="text-blue-400 hover:underline text-sm">Visit Official Page</a>
       <br><br>
-      <button class="bg-blue-600 px-4 py-2 rounded text-white font-semibold hover:bg-blue-700">+ Follow</button>
+      <button 
+        id="follow-btn"
+        class="{% if is_following %}bg-green-600 hover:bg-green-700{% else %}bg-blue-600 hover:bg-blue-700{% endif %} px-4 py-2 rounded text-white font-semibold transition"
+        onclick="toggleFollow('{{ artist.artist_id }}')"
+      >
+        {% if is_following %}✔ Following{% else %}+ Follow{% endif %}
+      </button>
     </div>
   </div>
 
@@ -25,7 +31,7 @@
         <div class="grid grid-cols-12 items-center px-4 py-3">
           <!-- Cover + Title -->
           <div class="col-span-6 flex items-center gap-4">
-            <img src="{{ song.album.cover_url|default:'/static/images/images.png' }}" alt="{{ song.title }}" class="w-12 h-12 rounded-md object-cover">
+            <img src="{{ song.album.cover_url|default:'/static/music/images.png' }}" alt="{{ song.title }}" class="w-12 h-12 rounded-md object-cover">
             <span class="text-white font-medium">{{ song.title }}</span>
           </div>
           <!-- Duration -->
@@ -38,7 +44,12 @@
           </div>
           <!-- Like Button -->
           <div class="col-span-3 text-right">
-            <button class="text-red-500 hover:text-red-400 text-xl">❤️</button>
+            <button 
+              class="like-btn text-xl transition" 
+              data-song-id="{{ song.id }}"
+            >
+              {% if song.is_liked %}❤️{% else %}🤍{% endif %}
+            </button>
           </div>
         </div>
       {% endfor %}
@@ -52,9 +63,7 @@
       {% for album in albums %}
         <div 
           class="album-card bg-[#1e2538] rounded-lg shadow-md overflow-hidden cursor-pointer" 
-          data-title="{{ album.title|escapejs }}" 
-          data-cover="{{ album.cover_url }}" 
-          data-songs='{{ album.songs_data|safe|escapejs }}'
+          data-id="{{ album.album_id }}"
         >
           <img src="{{ album.cover_url }}" alt="{{ album.title }}" class="w-full h-40 object-cover">
           <div class="p-4">
@@ -68,31 +77,103 @@
 
   <!-- Album Modal -->
   <div id="album-modal" class="fixed inset-0 z-50 bg-black bg-opacity-70 hidden flex items-center justify-center">
-    <div class="bg-[#1e2538] w-4/5 max-w-3xl p-6 rounded-lg shadow-lg text-white relative">
-      <button class="absolute top-2 right-3 text-3xl hover:text-red-500" onclick="closeAlbumModal()">&times;</button>
-      <div class="flex gap-6 items-center mb-6">
-        <img id="modal-album-cover" src="" alt="Album Cover" class="w-32 h-32 rounded-md object-cover">
-        <h3 id="modal-album-title" class="text-2xl font-bold">Album Title</h3>
-      </div>
-      <div id="modal-album-songs" class="space-y-4 max-h-60 overflow-y-auto custom-scroll"></div>
+    <div class="bg-[#1e2538] w-11/12 md:w-4/5 max-w-3xl p-8 rounded-2xl shadow-2xl text-white relative">
+      <button class="absolute top-4 right-4 text-3xl text-gray-300 hover:text-red-500 transition" onclick="closeAlbumModal()">&times;</button>
+      <h3 id="modal-album-title" class="text-center text-2xl font-extrabold mb-6 tracking-wide text-purple-300">Album Title</h3>
+      <div id="modal-album-songs" class="space-y-4 max-h-80 overflow-y-auto custom-scroll px-1"></div>
     </div>
   </div>
 
+  <!-- Toast Notification -->
+<div id="toast" class="fixed top-6 right-6 hidden px-4 py-3 rounded-lg shadow-lg text-white z-50 transition-all duration-300"></div>
+
 </div>
 
+<!-- Scripts -->
 <script>
+  function getCSRFToken() {
+    const name = 'csrftoken';
+    const cookie = document.cookie.split('; ').find(row => row.startsWith(name + '='));
+    return cookie ? decodeURIComponent(cookie.split('=')[1]) : '';
+  }
+
+  function showToast(message, bgColor = "bg-green-600") {
+  const toast = document.getElementById("toast");
+  toast.textContent = message;
+  toast.className = `fixed top-6 right-6 z-50 px-4 py-2 rounded shadow-lg text-white font-medium ${bgColor}`;
+  toast.classList.remove("hidden");
+
+  setTimeout(() => {
+    toast.classList.add("hidden");
+  }, 2500);
+}
+
+  function toggleFollow(artistId) {
+    fetch(`/follow-toggle/${artistId}/`, {
+      method: 'POST',
+      headers: {
+        'X-CSRFToken': getCSRFToken(),
+      },
+    })
+    .then(res => res.json())
+    .then(data => {
+      const btn = document.getElementById("follow-btn");
+      if (data.following) {
+        btn.classList.remove("bg-blue-600", "hover:bg-blue-700");
+        btn.classList.add("bg-green-600", "hover:bg-green-700");
+        btn.textContent = "✔ Following";
+        showToast(data.message)
+      } else {
+        btn.classList.remove("bg-green-600", "hover:bg-green-700");
+        btn.classList.add("bg-blue-600", "hover:bg-blue-700");
+        btn.textContent = "+ Follow";
+        showToast(data.message, "bg-blue-600");
+      }
+    });
+  }
+
+  document.addEventListener("DOMContentLoaded", () => {
+    document.querySelectorAll(".like-btn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const songId = btn.dataset.songId;
+        fetch(`/like-toggle/${songId}/`, {
+          method: 'POST',
+          headers: {
+            'X-CSRFToken': getCSRFToken(),
+          },
+        })
+        .then(res => res.json())
+        .then(data => {
+          btn.innerHTML = data.liked ? '❤️' : '🤍';
+        });
+      });
+    });
+
+    document.querySelectorAll(".album-card").forEach(card => {
+      card.addEventListener("click", () => {
+        const album_id = card.dataset.id;
+        fetch(`/album/${album_id}`)
+          .then(res => res.json())
+          .then(data => {
+            openAlbumModal(data.title, data.cover, data.songs);
+          })
+          .catch(err => {
+            console.error("❌ Failed to fetch album songs:", err);
+          });
+      });
+    });
+  });
+
   function openAlbumModal(title, cover, songs) {
     document.getElementById("modal-album-title").innerText = title;
-    document.getElementById("modal-album-cover").src = cover;
-
     const songsContainer = document.getElementById("modal-album-songs");
     songsContainer.innerHTML = "";
 
     songs.forEach(song => {
       const div = document.createElement("div");
-      div.className = "flex justify-between items-center bg-gray-700 p-3 rounded";
+      div.className = "flex justify-between items-center bg-[#2c3247] hover:bg-[#39415e] p-3 rounded-lg shadow-sm transition duration-200";
       div.innerHTML = `
-        <span class="text-white">🎵 ${song.title}</span>
+        <span class="text-white flex items-center gap-2">🎵 <span>${song.title}</span></span>
         <span class="text-sm text-gray-300">${Math.floor(song.duration / 60)}m ${song.duration % 60}s</span>
       `;
       songsContainer.appendChild(div);
@@ -104,24 +185,5 @@
   function closeAlbumModal() {
     document.getElementById("album-modal").classList.add("hidden");
   }
-
-  // Attach click listeners to each album card
-  document.addEventListener("DOMContentLoaded", () => {
-  document.querySelectorAll(".album-card").forEach(card => {
-    card.addEventListener("click", () => {
-      const albumId = card.dataset.id;
-
-      fetch(`/album/${albumId}/json/`)
-        .then(res => res.json())
-        .then(data => {
-          openAlbumModal(data.title, data.cover, data.songs);
-        })
-        .catch(err => {
-          console.error("❌ Failed to fetch album songs:", err);
-        });
-    });
-  });
-});
 </script>
-
 {% endblock %}
