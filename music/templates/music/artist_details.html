@@ -145,6 +145,8 @@
         .then(res => res.json())
         .then(data => {
           btn.innerHTML = data.liked ? '❤️' : '🤍';
+          showToast(data.message, data.liked ? "bg-green-600" : "bg-red-600"); // ✅ Toast works properly here
+
         });
       });
     });
@@ -163,6 +165,8 @@
       });
     });
   });
+
+
 
   function openAlbumModal(title, cover, songs) {
     document.getElementById("modal-album-title").innerText = title;

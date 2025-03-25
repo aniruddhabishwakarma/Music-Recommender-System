@@ -142,6 +142,7 @@ def get_song_details(request, song_id):
     """API to fetch full song details for the modal"""
     
     song = get_object_or_404(Song, id=song_id)
+    is_liked = Like.objects.filter(user=request.user, song=song).exists()
 
     response_data = {
         "song_id": song.id,
@@ -150,6 +151,7 @@ def get_song_details(request, song_id):
         "minutes": song.duration // 60,
         "seconds": song.duration % 60,
         "preview_url": song.preview_url if song.preview_url else None,
+        "is_liked": is_liked,
 
         # ✅ Artist Details
         "artist": {

@@ -1,0 +1,104 @@
+<!-- ✅ Reusable Add to Playlist Modal -->
+<div id="playlist-modal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden items-center justify-center">
+    <div class="bg-[#1f2937] p-6 rounded-lg shadow-lg w-96 text-white relative">
+  
+      <!-- Close Button -->
+      <button onclick="closePlaylistModal()" class="absolute top-2 right-3 text-xl text-gray-400 hover:text-red-500">
+        ✖
+      </button>
+  
+      <h2 class="text-xl font-bold mb-4 text-center">🎶 Add to Playlist</h2>
+  
+      <div id="playlist-options" class="space-y-3 max-h-60 overflow-y-auto custom-scroll">
+        <p class="text-sm text-gray-400">Loading playlists...</p>
+      </div>
+  
+      <div class="mt-4">
+        <input id="new-playlist-name" type="text" placeholder="New playlist name"
+               class="w-full px-3 py-2 bg-gray-800 text-gray-300 rounded">
+        <button onclick="createAndAddToPlaylist()" class="mt-2 bg-blue-600 hover:bg-blue-700 w-full py-2 rounded font-semibold">
+          ➕ Create & Add
+        </button>
+      </div>
+    </div>
+  </div>
+  
+  <script>
+  function openPlaylistModal(songId = null) {
+    const modal = document.getElementById("playlist-modal");
+    const container = document.getElementById("playlist-options");
+  
+    modal.classList.remove("hidden");
+    container.innerHTML = "<p class='text-sm text-gray-400'>Loading playlists...</p>";
+  
+    if (songId) {
+      document.getElementById("modal-like-btn").dataset.songId = songId;
+    }
+  
+    fetch('/api/playlists/')
+      .then(res => res.json())
+      .then(data => {
+        container.innerHTML = "";
+        if (data.length === 0) {
+          container.innerHTML = "<p class='text-sm text-gray-400'>No playlists found.</p>";
+        } else {
+          data.forEach(playlist => {
+            const btn = document.createElement("button");
+            btn.className = "bg-gray-700 hover:bg-green-600 w-full px-4 py-2 rounded text-left";
+            btn.innerText = `➕ ${playlist.name}`;
+            btn.onclick = () => addToPlaylist(playlist.id);
+            container.appendChild(btn);
+          });
+        }
+      });
+  }
+  
+  function closePlaylistModal() {
+    document.getElementById("playlist-modal").classList.add("hidden");
+  }
+  
+  function addToPlaylist(playlistId) {
+    const songId = document.getElementById("modal-like-btn").dataset.songId;
+    fetch('/add-to-playlist/', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': getCSRFToken(),
+      },
+      body: JSON.stringify({
+        playlist_id: playlistId,
+        song_id: songId
+      })
+    })
+    .then(res => res.json())
+    .then(data => {
+      showToast(data.message, data.success ? "bg-green-600" : "bg-red-600");
+      closePlaylistModal();
+    });
+  }
+  
+  function createAndAddToPlaylist() {
+    const name = document.getElementById("new-playlist-name").value.trim();
+    const songId = document.getElementById("modal-like-btn").dataset.songId;
+  
+    if (!name) return showToast("Please enter a playlist name.", "bg-yellow-600");
+  
+    fetch('/create-playlist/', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': getCSRFToken(),
+      },
+      body: JSON.stringify({
+        name: name,
+        song_id: songId
+      })
+    })
+    .then(res => res.json())
+    .then(data => {
+      showToast(data.message, data.success ? "bg-green-600" : "bg-red-600");
+      closePlaylistModal();
+    });
+  }
+  </script>
+  
