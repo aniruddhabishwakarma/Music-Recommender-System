@@ -50,3 +50,16 @@ class PlaylistSong(models.Model):
 
     def __str__(self):
         return f"{self.song.title} in {self.playlist.name}"
+    
+class Review(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    song = models.ForeignKey(Song, on_delete=models.CASCADE, related_name="reviews")
+    content = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = "music_review"
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"{self.user.username} on {self.song.title}"

@@ -1,8 +1,79 @@
 {% extends "music/base.html" %}
-
-{% block title %}Library{% endblock %}
-
+{% block title %}Your Library{% endblock %}
 {% block content %}
-<h1 class="text-3xl font-bold">📚 Your Library</h1>
-<p class="text-gray-400 mt-2">Your saved songs and albums will appear here.</p>
+
+<h1 class="text-3xl font-bold mb-8">🎵 Your Library</h1>
+
+<!-- ✅ Liked Songs -->
+<section class="mb-14">
+  <h2 class="text-2xl font-semibold mb-4">❤️ Liked Songs</h2>
+  {% if liked_songs %}
+    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-8 gap-y-10">
+      {% for song in liked_songs %}
+      <div class="p-2 bg-gray-800 shadow-lg flex flex-col items-center w-64 transition-transform transform hover:scale-105 cursor-pointer"
+           onclick="openModal('{{ song.id }}')">
+        <img src="{{ song.album.cover_url|default:'/static/images/images.png' }}" class="w-full h-56 object-cover rounded-lg">
+        <div class="w-full p-3">
+          <h3 class="text-white text-lg font-semibold">{{ song.title }}</h3>
+          <p class="text-sm text-blue-400">🎤 {{ song.artist.name }}</p>
+          <p class="text-sm text-gray-400">⏳ {{ song.duration_formatted }}</p>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <p class="text-gray-400 italic">You haven’t liked any songs yet.</p>
+  {% endif %}
+</section>
+
+<!-- ✅ Followed Artists -->
+<section class="mb-14">
+  <h2 class="text-2xl font-semibold mb-4">🎤 Followed Artists</h2>
+  {% if followed_artists %}
+    <div class="flex flex-wrap gap-6">
+      {% for artist in followed_artists %}
+      <a href="/artist/{{ artist.artist_id }}/" class="bg-gray-800 p-4 rounded-lg shadow-md hover:bg-gray-700 transition flex items-center space-x-4 w-80">
+        <img src="{{ artist.picture_url|default:'/static/images/default_artist.jpg' }}" class="w-16 h-16 rounded-full object-cover">
+        <div>
+          <p class="text-white font-bold">{{ artist.name }}</p>
+          <p class="text-sm text-gray-400">{{ artist.fans_count }} fans</p>
+        </div>
+      </a>
+      {% endfor %}
+    </div>
+  {% else %}
+    <p class="text-gray-400 italic">You’re not following any artists yet.</p>
+  {% endif %}
+</section>
+
+<!-- ✅ Your Playlists -->
+<section>
+  <h2 class="text-2xl font-semibold mb-4">🎶 Your Playlists</h2>
+  {% if playlists %}
+    {% for playlist in playlists %}
+    <div class="mb-10">
+      <h3 class="text-xl font-bold mb-2">📁 {{ playlist.name }}</h3>
+      {% if playlist.songs.all %}
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-8 gap-y-10">
+          {% for item in playlist.songs.all %}
+          <div class="p-2 bg-gray-800 shadow-lg flex flex-col items-center w-64 transition-transform transform hover:scale-105 cursor-pointer"
+               onclick="openModal('{{ item.song.id }}')">
+            <img src="{{ item.song.album.cover_url|default:'/static/images/images.png' }}" class="w-full h-56 object-cover rounded-lg">
+            <div class="w-full p-3">
+              <h3 class="text-white text-lg font-semibold">{{ item.song.title }}</h3>
+              <p class="text-sm text-blue-400">🎤 {{ item.song.artist.name }}</p>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <p class="text-sm text-gray-500 italic">No songs in this playlist yet.</p>
+      {% endif %}
+    </div>
+    {% endfor %}
+  {% else %}
+    <p class="text-gray-400 italic">You haven’t created any playlists yet.</p>
+  {% endif %}
+</section>
+
 {% endblock %}

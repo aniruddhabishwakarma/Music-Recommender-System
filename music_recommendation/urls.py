@@ -5,7 +5,7 @@ from music.views.user_view import *
 from music.views.auth_view import *  # ✅ Import properly
 from django.conf import settings
 from django.conf.urls.static import static
-from music.views.library_view import like_toggle, follow_toggle
+from music.views.library_view import *
 
 urlpatterns = [
     path('', home, name='home'),
@@ -41,6 +41,12 @@ urlpatterns = [
 
     path('like-toggle/<int:song_id>/', like_toggle, name='like-toggle'),
     path('follow-toggle/<int:artist_id>/', follow_toggle, name='follow-toggle'),
+    path('get-user-playlists/', get_user_playlists, name='get_user_playlists'),
+    path('create-playlist/', create_playlist, name='create_playlist'),
+    path('add-to-playlist/', add_to_playlist, name='add_to_playlist'),
+    path('api/reviews/<int:song_id>/', get_reviews, name='get_reviews'),
+    path('api/submit-review/', submit_review, name='submit_review'),
+
 ]
 
 if settings.DEBUG:

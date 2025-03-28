@@ -14,3 +14,6 @@ admin.site.register(SecurityQuestion)
 
 admin.site.register(Like)
 admin.site.register(Follow)
+admin.site.register(Playlist)
+admin.site.register(PlaylistSong)
+admin.site.register(Review)

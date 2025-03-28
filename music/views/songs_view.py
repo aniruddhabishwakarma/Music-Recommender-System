@@ -175,9 +175,7 @@ def get_song_details(request, song_id):
 
     return JsonResponse(response_data)
 
-@login_required
-def library(request):
-    return render(request, "music/library.html")
+
 
 @login_required(login_url='/login/')
 def artist_details(request, artist_id):

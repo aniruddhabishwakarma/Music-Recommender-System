@@ -61,6 +61,13 @@
             background: rgba(0, 0, 0, 0.6); 
             transition: backdrop-filter 0.5s ease-in-out;
         }
+        #toast {
+    transition: opacity 0.3s ease;
+    opacity: 1;
+  }
+  #toast.hidden {
+    opacity: 0;
+  }
     </style>
 </head>
 <body class="min-h-screen flex flex-col bg-gray-950">
@@ -102,9 +109,11 @@
     </nav>
 
     <!-- ✅ Page Content -->
-    <div class="max-w-6xl w-full mx-auto p-6 mt-16">
+    <div class="max-w-6xl w-full mx-auto p-4 mt-16">
         {% block content %}{% endblock %}
     </div>
+    <div id="toast" class="fixed top-6 right-6 hidden px-4 py-3 rounded-lg shadow-lg text-white z-50 transition-all duration-300"></div>
+
     {% load static %}
     <script>
          var STATIC_URL = "{% static 'music/images/images.png' %}";
@@ -112,5 +121,14 @@
     </script>
 <script src="{% static 'js/main.js' %}"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/node-vibrant/3.1.6/Vibrant.min.js"></script>
+<script>
+    function showToast(message, bgColor = "bg-green-600") {
+      let toast = document.getElementById("toast");
+      toast.textContent = message;
+      toast.className = `fixed top-6 right-6 px-4 py-3 rounded-lg shadow-lg text-white z-50 transition-all duration-300 ${bgColor}`;
+      toast.classList.remove("hidden");
+      setTimeout(() => toast.classList.add("hidden"), 2500);
+    }
+    </script>
 </body>
 </html>
